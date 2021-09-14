@@ -3,6 +3,7 @@ import Cookies from 'universal-cookie'
 import axios from 'axios'
 
 import signinImage from '../assets/signup.jpg'
+const cookies=new Cookies()
 const initialState={
   fullName:'',
   username:'',
@@ -19,8 +20,26 @@ const Auth = () => {
     const handleChange=(e)=>{
       setForm({...form,[e.target.name]:e.target.value})
     }
-    const handleSubmit=(e)=>{
+    const handleSubmit=async (e)=>{
       e.preventDefault()
+      const {fullName,username,password,phoneNumber,avatarURL}=form;
+      const URL="http://localhost:5000/auth"
+      const {data:{token,userId,hashedPassword}}= await axios.post (`${URL}/${isSignup ? 'signup':'signin'}`,{
+        username,password,fullName,phoneNumber,avatarURL
+      })
+
+      cookies.set("token",token)
+      cookies.set('username',username)
+      cookies.set('fullname',fullName)
+      cookies.set('userId',userId)
+      
+      if(isSignup){
+        cookies.set('phoneNumber',phoneNumber)
+        cookies.set('avatarURL',avatarURL)
+        cookies.set('hashedPassword',hashedPassword)
+      }
+      
+      window.location.reload();
     }
     const switchMode=()=>{
         setisSignup((previsSignup)=> !previsSignup)
@@ -81,16 +100,6 @@ const Auth = () => {
                               required/>
                           </div>)}
                           <div className='auth__form-container_fields-content_input'>
-                              <label htmlFor='confirmPassword'>
-                                Password
-                                </label>
-                              <input 
-                              name="confirmPassword"
-                              type="password"
-                              placeholder="Confirm Password"
-                              onChange ={handleChange}
-                              required/>
-                          </div>
                             {isSignup && ( <div className='auth__form-container_fields-content_input'>
                               <label htmlFor='password'>
                                 Password
@@ -102,6 +111,16 @@ const Auth = () => {
                               onChange ={handleChange}
                               required/>
                           </div>)}
+                              <label htmlFor='confirmPassword'>
+                                 Confirm Password
+                                </label>
+                              <input 
+                              name="confirmPassword"
+                              type="password"
+                              placeholder="Confirm Password"
+                              onChange ={handleChange}
+                              required/>
+                          </div>
                           <div className="auth__form-container_fields-content_button">
                             <button>{isSignup ? "Sign Up" : "Sign In"}</button>
                           </div>
